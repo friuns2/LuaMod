@@ -1,15 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using NLua;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
-public class Test4 : MonoBehaviour
+public unsafe class Test4 : MonoBehaviour
 {
     private Lua lua;
+    private List<LuaFunction> lfs = new List<LuaFunction>();
     public void Start()
     {
         lua = new Lua();
@@ -30,38 +35,62 @@ Test4  ={}
 ");
 
         Type[] typesToHookLua = {typeof(Test4)};
-
+        
         foreach (Type type in typesToHookLua)
         {
-            var functions = lua[type.Name] as LuaTable;
-            if (functions != null)
+            if (lua[type.Name] is LuaTable functions)
             {
                 foreach (KeyValuePair<object,object> fc in functions)
                 {
                     var mh = type.GetMethod((string)fc.Key, BindingFlags.Instance | BindingFlags.Public);
                     if (mh != null)
                     {
-                        var originalMethodName = type.Name + "." + fc.Key;
-                        Action action = delegate
-                        {
-                            // lua.GetFunction(originalMethodName).Call(); //how to transfer originalMethodName? 
-                            lua.GetFunction("Test4.Update").Call(); 
-                        };
                         
-                        var hook =new MethodHook(mh, action.Method, ((Action) BaseMethod).Method);
+                        var hook = new MethodHook(mh, ((Action) LuaExecute).Method, ((Action) BaseMethod).Method);
+                        hook.GetFunctionAddr();
+                        HookUtils.SetAddrFlagsToRWE(hook._replacementPtr, size.Length);
+                        fixed (void* newPlace = size)
+                        {
+                            HookUtils.MemCpy(hook._replacementPtr.ToPointer(), newPlace, size.Length);
+                            hook._replacementPtr = new IntPtr(newPlace);
+                        }
+
+                        HookUtils.SetAddrFlagsToRWE(hook._replacementPtr, size.Length);
+                        
                         hook.Install();
+                        // hook.id = (byte) lfs.Count;
+                        // hook._codePatcher._pTarget
+                        
+                        lfs.Add((LuaFunction)fc.Value);
+                        break;
                     }
                 }
             }
         }
     }
-    
-    [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void LateUpdate()
+    [ContextMenu("test")]
+    public void test()
     {
-        Debug.Log("late update");
+        UnityEngine.Debug.Log((long)Unsafe.AsPointer(ref size));
+        UnityEngine.Debug.Log((long)Unsafe.AsPointer(ref mestart));
+        UnityEngine.Debug.Log(MethodHook.GetFunctionAddr(((Action) Update).Method));
+
     }
     
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public  void LuaExecute()
+    {
+        int a=0;
+        int* b = &a;
+        Debug.Log(new IntPtr(b));
+    }
+    
+    // [MethodImpl(MethodImplOptions.NoOptimization)]
+    // public void LateUpdate()
+    // {
+    //     Debug.Log("late update");
+    // }
+    //
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public void Update()
     {
@@ -73,4 +102,8 @@ Test4  ={}
     {
         Debug.Log("proxy");
     }
+    private long mestart,асад,сда,дсф,ас,фа,дса,ше,шя,ефа,дсад,дас,дс,дд,шч,чь,в,д,е,ш,сь,ч,г,р,с,ьчв,фдг;
+    byte[] size = new byte[1024];
+    
 }
+
