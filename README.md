@@ -22,7 +22,7 @@ public class PlayerTest : MonoBehaviour
 }
 ```
 
-Extending it by adding jump at runtime
+Adding jump logic at runtime
 
 ```c#
  LuaMod.PatchAll(@"
