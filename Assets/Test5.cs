@@ -1,17 +1,26 @@
-using System.Runtime.InteropServices;
+using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
-
-
-public class Test5 : MonoBehaviour
+public unsafe class Test5 : MonoBehaviour
 {
-    
-    [DllImport("__Internal")]
-    private static extern int _asmAdd(int x, int y);
- 
-    void OnGUI()
+    private long a = 123456789123456789;
+    private IntPtr d;
+    private void Start()
     {
-        GUI.Label(new Rect(100, 50, 100, 100), _asmAdd(10, 20).ToString());
-    }
+        d = new IntPtr(Unsafe.AsPointer(ref a));
 
+    }
+    public void OnGUI()
+    {
+        HookUtils.SetAddrFlagsToRWE(d, 8);
+        if (GUILayout.Button("Increase " + a))
+            a++;
+        
+        HookUtils.VirtualProtect(d, 8, HookUtils.Protection.PAGE_EXECUTE_READ,out uint _);
+    }
+    private void OnDestroy()
+    {
+        HookUtils.SetAddrFlagsToRWE(d, 8);
+    }
 }

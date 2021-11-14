@@ -688,6 +688,7 @@ namespace NLua
                     }
                 }
                 #endregion
+                _globals.Add(path); // Otherwise simply add the element to the list
             }
             else
                 _globals.Add(path); // Otherwise simply add the element to the list
