@@ -12,8 +12,11 @@ public class PlayerTest : MonoBehaviour
     {
         if (!cc.isGrounded)
             yVel -= 10 * Time.deltaTime;
-        
-        cc.Move(new Vector3(Input.GetAxis("Horizontal"), yVel, Input.GetAxis("Vertical")) * (Time.deltaTime * 10));
+
+        var x = Input.GetAxis("Horizontal");
+        var y = Input.GetAxis("Vertical");
+        var move = new Vector3(x, yVel, y);
+        cc.Move(move * (Time.deltaTime * 10));
     }
       
 }
