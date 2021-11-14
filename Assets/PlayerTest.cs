@@ -5,16 +5,15 @@ using Debug = UnityEngine.Debug;
 
 public class PlayerTest : MonoBehaviour
 {
-    public class Test2
-    {
-        public int a;
-    }
+    
     public CharacterController cc;
-    public float gravity;
-    // [MethodImpl(MethodImplOptions.NoOptimization)]
+    public float yVel;
     public void Update()
     {
-        cc.Move(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * (Time.deltaTime * 10));
+        if (!cc.isGrounded)
+            yVel -= 10 * Time.deltaTime;
+        
+        cc.Move(new Vector3(Input.GetAxis("Horizontal"), yVel, Input.GetAxis("Vertical")) * (Time.deltaTime * 10));
     }
       
 }

@@ -35,6 +35,7 @@ namespace NLua
             _extractValues.Add(typeof(byte[]), GetAsByteArray);
             _extractValues.Add(typeof(LuaFunction), GetAsFunction);
             _extractValues.Add(typeof(LuaTable), GetAsTable);
+            _extractValues.Add(typeof(LuaThread), GetAsThread);
             _extractValues.Add(typeof(LuaUserData), GetAsUserdata);
             _extractNetObject = GetAsNetObject;
         }
@@ -107,6 +108,8 @@ namespace NLua
                     return _extractValues[typeof(string)];
                 if (luatype == LuaType.Table)
                     return _extractValues[typeof(LuaTable)];
+                if (luatype == LuaType.Thread)
+                    return _extractValues[typeof(LuaThread)];
                 if (luatype == LuaType.UserData)
                     return _extractValues[typeof(object)];
                 if (luatype == LuaType.Function)
@@ -118,7 +121,7 @@ namespace NLua
 
             if (netParamIsNumeric)
             {
-                if (luaState.IsNumber(stackPos) && !netParamIsString)
+                if (luaState.IsNumericType(stackPos) && !netParamIsString)
                     return _extractValues[paramType];
             }
             else if (paramType == typeof(bool))
@@ -128,14 +131,17 @@ namespace NLua
             }
             else if (netParamIsString)
             {
-                if (luaState.IsString(stackPos))
+                if (luaState.IsString(stackPos) || luatype == LuaType.Nil)
                     return _extractValues[paramType];
-                if (luatype == LuaType.Nil)
-                    return _extractNetObject; // kevinh - silently convert nil to a null string pointer
             }
             else if (paramType == typeof(LuaTable))
             {
                 if (luatype == LuaType.Table || luatype == LuaType.Nil)
+                    return _extractValues[paramType];
+            }
+            else if (paramType == typeof(LuaThread))
+            {
+                if (luatype == LuaType.Thread || luatype == LuaType.Nil)
                     return _extractValues[paramType];
             }
             else if (paramType == typeof(LuaUserData))
@@ -169,12 +175,10 @@ namespace NLua
                 else
                     return null;
             }
-            else
-            {
-                object obj = _translator.GetNetObject(luaState, stackPos);
-                if (obj != null && paramType.IsInstanceOfType(obj))
-                    return _extractNetObject;
-            }
+
+            object netObj = _translator.GetNetObject(luaState, stackPos);
+            if (netObj != null && paramType.IsInstanceOfType(netObj))
+                return _extractNetObject;
 
             return null;
         }
@@ -345,10 +349,15 @@ namespace NLua
                 return null;
             return luaState.ToString(stackPos, false);
         }
-
+        
         private object GetAsTable(LuaState luaState, int stackPos)
         {
             return _translator.GetTable(luaState, stackPos);
+        }
+
+        private object GetAsThread(LuaState luaState, int stackPos)
+        {
+            return _translator.GetThread(luaState, stackPos);
         }
 
         private object GetAsFunction(LuaState luaState, int stackPos)

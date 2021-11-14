@@ -1089,7 +1089,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   console: {fileID: 1653258765}
-  text: {fileID: 1752932195}
+  text: {fileID: 503193470}
   compile: {fileID: 445782357}
 --- !u!4 &1647748103
 Transform:
@@ -1379,7 +1379,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cc: {fileID: 1885269000}
-  gravity: 0
+  yVel: 0
 --- !u!143 &1885269000
 CharacterController:
   m_ObjectHideFlags: 0

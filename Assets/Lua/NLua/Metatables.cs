@@ -5,12 +5,15 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using AOT;
+
 using KeraLua;
 
 using NLua.Method;
 using NLua.Extensions;
 
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
+    using ObjCRuntime;
+#endif
 
 using LuaState = KeraLua.Lua;
 using LuaNativeFunction = KeraLua.LuaFunction;
@@ -47,22 +50,32 @@ namespace NLua
         /*
          * __index metafunction for CLR objects. Implemented in Lua.
          */
-        public const string LuaIndexFunction = @"local function a(b,c)local d=getmetatable(b)local e=d.cache[c]if e~=nil then return e else local f,g=get_object_member(b,c)if g then d.cache[c]=f end;return f end end;return a";
-            //@"local function index(obj,name)
-            //    local meta = getmetatable(obj)
-            //    local cached = meta.cache[name]
-            //    if cached ~= nil then
-            //       return cached
-            //    else
-            //       local value,isFunc = get_object_member(obj,name)
-                   
-            //       if isFunc then
-            //        meta.cache[name]=value
-            //       end
-            //       return value
-            //     end
-            //end
-            //return index";
+        public const string LuaIndexFunction = @"local a={}local function b(c,d)local e=getmetatable(c)local f=e.cache[d]if f~=nil then if f==a then return nil end;return f else local g,h=get_object_member(c,d)if h then if g==nil then e.cache[d]=a else e.cache[d]=g end end;return g end end;return b";
+            //@"local fakenil = {}
+            //  local function index(obj, name)
+            //      local meta = getmetatable(obj)
+            //      local cached = meta.cache[name]
+              
+            //      if cached ~= nil then
+            //          if cached == fakenil then
+            //              return nil
+            //          end
+            //          return cached
+              
+            //      else
+            //          local value, isCached = get_object_member(obj, name)
+            //          if isCached then
+            //              if value == nil then
+            //                  meta.cache[name] = fakenil
+            //              else
+            //                  meta.cache[name] = value
+            //              end
+            //          end
+            //          return value
+            //      end
+            //  end
+              
+            //  return index";
 
         public MetaFunctions(ObjectTranslator translator)
         {
@@ -72,12 +85,17 @@ namespace NLua
         /*
          * __call metafunction of CLR delegates, retrieves and calls the delegate.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int RunFunctionDelegate(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
             var translator = ObjectTranslatorPool.Instance.Find(state);
             var func = (LuaNativeFunction)translator.GetRawNetObject(state, 1);
+            if (func == null)
+                return state.Error();
+
             state.Remove(1);
             int result = func(luaState);
             var exception = translator.GetObject(state, -1) as LuaScriptException;
@@ -90,7 +108,9 @@ namespace NLua
         /*
          * __gc metafunction of CLR objects.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int CollectObject(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);
@@ -111,7 +131,9 @@ namespace NLua
         /*
          * __tostring metafunction of CLR objects.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int ToStringLua(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);
@@ -135,7 +157,9 @@ namespace NLua
         /*
          * __add metafunction of CLR objects.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int AddLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -151,7 +175,9 @@ namespace NLua
         /*
         * __sub metafunction of CLR objects.
         */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int SubtractLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -167,7 +193,9 @@ namespace NLua
         /*
         * __mul metafunction of CLR objects.
         */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int MultiplyLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -183,7 +211,9 @@ namespace NLua
         /*
         * __div metafunction of CLR objects.
         */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int DivideLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -199,7 +229,9 @@ namespace NLua
         /*
         * __mod metafunction of CLR objects.
         */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int ModLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -215,7 +247,9 @@ namespace NLua
         /*
         * __unm metafunction of CLR objects.
         */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int UnaryNegationLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -228,7 +262,7 @@ namespace NLua
             return result;
         }
 
-        static int UnaryNegationLua(LuaState luaState, ObjectTranslator translator)
+        static int UnaryNegationLua(LuaState luaState, ObjectTranslator translator) //-V3009
         {
             object obj1 = translator.GetRawNetObject(luaState, 1);
 
@@ -255,7 +289,9 @@ namespace NLua
         /*
         * __eq metafunction of CLR objects.
         */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int EqualLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -271,7 +307,9 @@ namespace NLua
         /*
         * __lt metafunction of CLR objects.
         */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int LessThanLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -287,7 +325,9 @@ namespace NLua
         /*
          * __le metafunction of CLR objects.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int LessThanOrEqualLua(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -320,7 +360,8 @@ namespace NLua
                 if (type == LuaType.UserData)
                 {
                     object obj = translator.GetRawNetObject(luaState, i);
-                    strrep = obj.ToString();
+                    
+                    strrep = obj == null ? "(null)" : obj.ToString();
                 }
 
                 Debug.WriteLine("{0}: ({1}) {2}", i, typestr, strrep);
@@ -334,7 +375,9 @@ namespace NLua
          * either the value of the member or a delegate to call it.
          * If the member does not exist returns nil.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int GetMethod(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);
@@ -374,7 +417,7 @@ namespace NLua
             if (TryAccessByArray(luaState, objType, obj, index))
                 return 1;
 
-            int fallback = GetMethodFallback(luaState, objType, obj, index, methodName);
+            int fallback = GetMethodFallback(luaState, objType, obj, methodName);
             if (fallback != 0)
                 return fallback;
 
@@ -489,7 +532,6 @@ namespace NLua
         (LuaState luaState,
          Type objType,
          object obj,
-         object index,
          string methodName)
         {
             object method;
@@ -500,18 +542,18 @@ namespace NLua
             // Try to use get_Item to index into this .net object
             MethodInfo[] methods = objType.GetMethods();
 
-            int res = TryIndexMethods(luaState, methods, obj, index);
+            int res = TryIndexMethods(luaState, methods, obj);
             if (res != 0)
                 return res;
 
             // Fallback to GetRuntimeMethods
             methods = objType.GetRuntimeMethods().ToArray();
 
-            res = TryIndexMethods(luaState, methods, obj, index);
+            res = TryIndexMethods(luaState, methods, obj);
             if (res != 0)
                 return res;
 
-            res = TryGetValueForKeyMethods(luaState, methods, obj, index);
+            res = TryGetValueForKeyMethods(luaState, methods, obj);
             if (res != 0)
                 return res;
 
@@ -535,7 +577,7 @@ namespace NLua
             return 0;
         }
 
-        private int TryGetValueForKeyMethods(LuaState luaState, MethodInfo[] methods, object obj, object index)
+        private int TryGetValueForKeyMethods(LuaState luaState, MethodInfo[] methods, object obj)
         {
             foreach (MethodInfo methodInfo in methods)
             {
@@ -549,7 +591,7 @@ namespace NLua
                 ParameterInfo[] actualParams = methodInfo.GetParameters();
 
                 // Get the index in a form acceptable to the getter
-                index = _translator.GetAsType(luaState, 2, actualParams[0].ParameterType);
+                object index = _translator.GetAsType(luaState, 2, actualParams[0].ParameterType);
 
                 // If the index type and the parameter doesn't match, just skip it
                 if (index == null)
@@ -588,7 +630,7 @@ namespace NLua
         }
 
 
-        private int TryIndexMethods(LuaState luaState, MethodInfo [] methods, object obj, object index)
+        private int TryIndexMethods(LuaState luaState, MethodInfo [] methods, object obj)
         {
             foreach (MethodInfo methodInfo in methods)
             {
@@ -602,7 +644,7 @@ namespace NLua
                 ParameterInfo[] actualParams = methodInfo.GetParameters();
 
                 // Get the index in a form acceptable to the getter
-                index = _translator.GetAsType(luaState, 2, actualParams[0].ParameterType);
+                object index = _translator.GetAsType(luaState, 2, actualParams[0].ParameterType);
 
                 // If the index type and the parameter doesn't match, just skip it
                 if (index == null)
@@ -637,7 +679,9 @@ namespace NLua
          * __index metafunction of base classes (the base field of Lua tables).
          * Adds a prefix to the method name to call the base version of the method.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int GetBaseMethod(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);
@@ -938,7 +982,9 @@ namespace NLua
          * the member name and the value to be stored as arguments. Throws
          * and error if the assignment is invalid.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int SetFieldOrProperty(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);
@@ -1141,7 +1187,9 @@ namespace NLua
         /*
          * __index metafunction of type references, works on static members.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int GetClassMethod(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);
@@ -1185,7 +1233,9 @@ namespace NLua
         /*
          * __newindex function of type references, works on static members.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int SetClassFieldOrProperty(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);
@@ -1215,7 +1265,9 @@ namespace NLua
         /*
          * __call metafunction of Delegates. 
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         static int CallDelegate(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);
@@ -1249,14 +1301,27 @@ namespace NLua
             if (isOk)
             {
                 object result;
+                try
+                {
+                    if (methodDelegate.IsStatic)
+                        result = methodDelegate.Invoke(null, validDelegate.args);
+                    else
+                        result = methodDelegate.Invoke(del.Target, validDelegate.args);
 
-                if (methodDelegate.IsStatic)
-                    result = methodDelegate.Invoke(null, validDelegate.args);
-                else
-                    result = methodDelegate.Invoke(del.Target, validDelegate.args);
-
-                _translator.Push(luaState, result);
-                return 1;
+                    _translator.Push(luaState, result);
+                    return 1;
+                }
+                catch (TargetInvocationException e)
+                {
+                    // Failure of method invocation
+                    if (_translator.interpreter.UseTraceback)
+                        e.GetBaseException().Data["Traceback"] = _translator.interpreter.GetDebugTraceback();
+                    return  _translator.Interpreter.SetPendingException(e.GetBaseException());
+                }
+                catch (Exception e)
+                {
+                    return _translator.Interpreter.SetPendingException(e);
+                }
             }
 
             _translator.ThrowError(luaState, "Cannot invoke delegate (invalid arguments for  " + methodDelegate.Name + ")");
@@ -1269,7 +1334,9 @@ namespace NLua
          * found or if the arguments are invalid. Throws an error if the constructor
          * generates an exception.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int CallConstructor(IntPtr state)
         {
             var luaState = LuaState.FromIntPtr(state);

@@ -1,9 +1,7 @@
 ﻿// ReSharper disable IdentifierTypo
-
-using System;
 using System.Runtime.InteropServices;
 using System.Security;
-using AOT;
+
 using size_t = System.UIntPtr;
 using lua_State = System.IntPtr;
 using lua_CFunction = System.IntPtr;
@@ -26,34 +24,20 @@ namespace KeraLua
     [SuppressUnmanagedCodeSecurity]
     internal static class NativeMethods
     {
-        
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-    private const string LuaLibraryName = "lua54";
-#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-    private const string LuaLibraryName = "liblua54.dylib";
-#elif UNITY_ANDROID
-    private const string LuaLibraryName = "liblua54.so";
-#elif UNITY_IOS
-    private const string LuaLibraryName = "@rpath/liblua54.framework/liblua54";
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
+        private const string LuaLibraryName = "@rpath/liblua54.framework/liblua54";
+#elif __ANDROID__
+        private const string LuaLibraryName = "liblua54.so";
+#elif __MACOS__ 
+        private const string LuaLibraryName = "liblua54.dylib";
+#elif WINDOWS_UWP
+        private const string LuaLibraryName = "lua54.dll";
+#else
+        private const string LuaLibraryName = "lua54";
 #endif
-        
-// #if __TVOS__ && __UNIFIED__
-//         private const string LuaLibraryName = "@rpath/liblua54.framework/liblua54";
-// #elif __WATCHOS__ && __UNIFIED__
-//         private const string LuaLibraryName = "@rpath/liblua54.framework/liblua54";
-// #elif __IOS__ && __UNIFIED__
-//         private const string LuaLibraryName = "@rpath/liblua54.framework/liblua54";
-// #elif __ANDROID__
-//         private const string LuaLibraryName = "liblua54.so";
-// #elif __MACOS__ 
-//         private const string LuaLibraryName = "liblua54.dylib";
-// #elif WINDOWS_UWP
-//         private const string LuaLibraryName = "lua54.dll";
-// #else
-//         private const string LuaLibraryName = "lua54";
-// #endif
 
 #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CA2101 // Bug on CA + VS2017
 
         [DllImport (LuaLibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern int lua_absindex(lua_State luaState, int idx);
@@ -459,6 +443,7 @@ namespace KeraLua
         [DllImport(LuaLibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void luaL_where(lua_State luaState, int level);
 
+#pragma warning restore CA2101 // Bug on CA + VS2017
 #pragma warning restore IDE1006 // Naming Styles
 
     }

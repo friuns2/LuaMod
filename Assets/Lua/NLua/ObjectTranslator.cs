@@ -4,12 +4,15 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using AOT;
 using KeraLua;
 
 using NLua.Method;
 using NLua.Exceptions;
 using NLua.Extensions;
+
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
+    using ObjCRuntime;
+#endif
 
 using LuaState = KeraLua.Lua;
 using LuaNativeFunction = KeraLua.LuaFunction;
@@ -23,6 +26,10 @@ namespace NLua
         {
             public new bool Equals(object x, object y)
             {
+                if (x is Delegate  && y is Delegate)
+                {
+                    return x.Equals(y);
+                }
                 if (x != null && y != null && x.GetType() == y.GetType() && x.GetType().IsValueType && y.GetType().IsValueType)
                     return x.Equals(y); // Special case for boxed value types
                 return ReferenceEquals(x, y);
@@ -242,7 +249,9 @@ namespace NLua
          * Implementation of load_assembly. Throws an error
          * if the assembly is not found.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int LoadAssembly(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -344,7 +353,9 @@ namespace NLua
          * Implementation of import_type. Returns nil if the
          * type is not found.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int ImportType(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -370,7 +381,9 @@ namespace NLua
          * argument in the stack) as an object subclassing the
          * type passed as second argument in the stack.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int RegisterTable(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -435,7 +448,9 @@ namespace NLua
          * Implementation of free_object. Clears the metatable and the
          * base field, freeing the created object for garbage-collection
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int UnregisterTable(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -490,7 +505,9 @@ namespace NLua
          * Implementation of get_method_bysig. Returns nil
          * if no matching method is not found.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int GetMethodSignature(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -503,7 +520,7 @@ namespace NLua
             return result;
         }
 
-        private int GetMethodSignatureInternal(LuaState luaState)
+        private int GetMethodSignatureInternal(LuaState luaState) //-V3009
         {
             ProxyType klass;
             object target;
@@ -553,7 +570,9 @@ namespace NLua
          * Implementation of get_constructor_bysig. Returns nil
          * if no matching constructor is found.
          */
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int GetConstructorSignature(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -566,7 +585,7 @@ namespace NLua
             return result;
         }
 
-        private int GetConstructorSignatureInternal(LuaState luaState)
+        private int GetConstructorSignatureInternal(LuaState luaState) //-V3009
         {
             ProxyType klass = null;
             int udata = luaState.CheckUObject(1, "luaNet_class");
@@ -860,6 +879,8 @@ namespace NLua
                         int udata = luaState.ToNetObject(index, Tag);
                         return udata != -1 ? _objects[udata] : GetUserData(luaState, index);
                     }
+                case LuaType.Thread:
+                    return GetThread(luaState, index);
                 default:
                     return null;
             }
@@ -878,6 +899,21 @@ namespace NLua
             if (reference == -1)
                 return null;
             return new LuaTable(reference, interpreter);
+        }
+
+        /*
+         * Gets the thread in the index positon of the Lua stack.
+         */
+        internal LuaThread GetThread(LuaState luaState, int index)
+        {
+            // Before create new tables, check if there is any finalized object to clean.
+            CleanFinalizedReferences(luaState);
+
+            luaState.PushCopy(index);
+            int reference = luaState.Ref(LuaRegistry.Index);
+            if (reference == -1)
+                return null;
+            return new LuaThread(reference, interpreter);
         }
 
         /*
@@ -940,7 +976,7 @@ namespace NLua
             int newTop = luaState.GetTop();
 
             if (oldTop == newTop)
-                return null;
+                return new object[0];
 
             var returnValues = new List<object>();
             for (int i = oldTop + 1; i <= newTop; i++)
@@ -960,7 +996,7 @@ namespace NLua
             int newTop = luaState.GetTop();
 
             if (oldTop == newTop)
-                return null;
+                return new object[0];
 
             int iTypes;
             var returnValues = new List<object>();
@@ -1032,10 +1068,14 @@ namespace NLua
                 ((ILuaGeneratedType)o).LuaInterfaceGetLuaTable().Push(luaState);
             else if (o is LuaTable table)
                 table.Push(luaState);
+            else if (o is LuaThread thread)
+                thread.Push(luaState);
             else if (o is LuaNativeFunction nativeFunction)
                 PushFunction(luaState, nativeFunction);
             else if (o is LuaFunction luaFunction)
                 luaFunction.Push(luaState);
+            else if (o is LuaUserData userData)
+                userData.Push(luaState);
             else
                 PushObject(luaState, o, "luaNet_metatable");
         }
@@ -1071,7 +1111,9 @@ namespace NLua
             return 2;
         }
 
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int CType(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
@@ -1089,7 +1131,9 @@ namespace NLua
             return 1;
         }
 
+#if __IOS__ || __TVOS__ || __WATCHOS__ || __MACCATALYST__
         [MonoPInvokeCallback(typeof(LuaNativeFunction))]
+#endif
         private static int EnumFromInt(IntPtr luaState)
         {
             var state = LuaState.FromIntPtr(luaState);
