@@ -5,7 +5,7 @@ Simple Game logic we going to extend
 ```c#
 public class PlayerTest : MonoBehaviour
 {
-    
+
     public CharacterController cc;
     public float yVel;
     public void Update()
@@ -18,16 +18,14 @@ public class PlayerTest : MonoBehaviour
         var move = new Vector3(x, yVel, y);
         cc.Move(move * (Time.deltaTime * 10));
     }
-      
-}
 
+}
 ```
 
 Extending it by adding jump at runtime
 
 ```c#
  LuaMod.PatchAll(@"
--- USE WASD Keys to move, press Compile to add Jump mod
 
 PlayerTest  ={} 
 
