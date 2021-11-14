@@ -1,6 +1,6 @@
 ### Mod existing unity3d game with lua at runtime on android and PC
 
-Game logic we going to extend
+Simple character movement logic
 
 ```c#
 public class PlayerTest : MonoBehaviour
