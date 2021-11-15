@@ -6,21 +6,27 @@ public class ScriptWindow:MonoBehaviour
     public Text console;
     public InputField text;
     public Button compile;
+    
+    
     private void Start()
     {
         Application.logMessageReceived+= ApplicationOnlogMessageReceived;
         compile.onClick.AddListener(Patch);
+        
         text.text = @"
--- USE WASD Keys to move, press Compile to add Jump mod
+using UnityEngine;
+public class PlayerTestMod:PlayerTest
+    {
+        public override void Update()
+        {
+            if (!cc.isGrounded)
+                yVel -= 10 * Time.deltaTime;
 
-PlayerTest  ={} 
-
-function PlayerTest:Update ()
-    if Input.GetKeyDown(KeyCode.Space) then
-        this.yVel = 3;    
-    end
-    base:Invoke()
-end
+            if (Input.GetKeyDown(KeyCode.Space))
+                yVel = 3;
+            SharpMod.BaseInvoke();
+        }
+    }    
 ";
         
     }
@@ -31,6 +37,6 @@ end
     }
     public void Patch()
     {
-        LuaMod.PatchAll(text.text);
+        SharpMod.PatchAll(text.text);
     }
 }
