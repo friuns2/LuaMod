@@ -14,7 +14,7 @@ public class ScriptWindow:MonoBehaviour
     {
         Application.logMessageReceived+= ApplicationOnlogMessageReceived;
         compile.onClick.AddListener(Patch);
-        text.text = File.ReadAllText(Application.streamingAssetsPath + "/PlayerTestMod.cs").Replace("\r", "");
+        text.text = File.ReadAllText(Application.streamingAssetsPath + "/PlayerTestMod.cs").Replace("\r","");
     }
     private void ApplicationOnlogMessageReceived(string condition, string stacktrace, LogType type)
     {

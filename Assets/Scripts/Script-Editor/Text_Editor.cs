@@ -813,7 +813,7 @@ Classes/methods does not updated in realtime, so if your write new new method - 
                         // if (!shift_pressed) type = type.ToUpper();
                         // else type = type.ToLower();
 
-                    // Character_Repeat_Handler("SET", ki.Key);
+                     Character_Repeat_Handler("SET", ki.Key);
 
                     //Autoclose pairs
                     if (Auto_Close_Pairs_Dict.ContainsValue(type) && Selection_Get_Text() == "")
