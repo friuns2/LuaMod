@@ -38,6 +38,14 @@ end
 ");
 ```
 
-https://user-images.githubusercontent.com/16543239/141689971-dee3e61f-c287-47ae-8d18-4a103996248e.mp4
+[https://user-images.githubusercontent.com/16543239/141689971-dee3e61f-c287-47ae-8d18-4a103996248e.mp4](https://user-images.githubusercontent.com/16543239/141689971-dee3e61f-c287-47ae-8d18-4a103996248e.mp4)
+
+Thanks to 
+
+Mono Hook https://github.com/Misaka-Mikoto-Tech/MonoHook
+
+Slow sharp [https://github.com/pjc0247/SlowSharp](https://github.com/pjc0247/SlowSharp)
+
+Script editor [https://github.com/xttx/Unity-Runtime-ScriptEditor](https://github.com/xttx/Unity-Runtime-ScriptEditor)
 
 Discord: https://discord.gg/bxVky7seqa
