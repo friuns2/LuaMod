@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Slowsharp;
+using UnityEngine;
 
 public static class SharpMod
 {
@@ -25,7 +26,7 @@ public static class SharpMod
 
         // var type = h.GetHybType();
 
-        var assembly = Assembly.GetExecutingAssembly();
+        var assembly = Assembly.GetCallingAssembly();
         
         foreach (HybType  Class in runner.GetTypes())
         {
@@ -35,18 +36,26 @@ public static class SharpMod
             {
                 if (Class != fc.declaringType) continue;
                 
+                
                 var mh = type.GetMethod(fc.id, BindingFlags.Instance | BindingFlags.Public);
+                
                 if (mh != null)
                 {
                     var t = MethodPool.mp.methods.Pop();
                     MethodPool.mp.lf[t.id] = fc;
-                    
-
                     var hook = new MethodHook(mh, t.Call.Method, t.Base.Method);
                     hook.Install();
                     MethodPool.mp.hooks.Add(hook);
+                    
+                    
                     // break;
                 }
+                if(fc.id == "Init")
+                foreach (var a in GameObject.FindObjectsOfType(Class.parent.compiledType))
+                {
+                    fc.Invoke(HybInstance.Object(a));
+                }
+                
             }
         }
             

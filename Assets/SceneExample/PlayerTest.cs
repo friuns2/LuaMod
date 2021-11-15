@@ -9,6 +9,10 @@ public class PlayerTest : MonoBehaviour
     
     public CharacterController cc;
     public float yVel;
+    // public void Init()
+    // {
+    //     Debug.Log("asddas");
+    // }
     public void Update()
     {
         

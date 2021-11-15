@@ -33,12 +33,5 @@ public class MethodPool
     
     [MethodImpl(MethodImplOptions.NoOptimization)] public void Execute1() { SharpMod.Base = (Action)BaseMethod1; mp.lf[1].Invoke(HybInstance.Object(this)); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod1() { Debug.Log("base method"); }
     
-    // [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute2() { LuaMod.lua["this"] = this; mp.lf[2].Call(); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod2() { Debug.Log("base method"); }
-    // private LuaFunction lf3; [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute3() { lf3.Call(); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod3() { Debug.Log("base method"); }
-    // private LuaFunction lf4; [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute4() { lf4.Call(); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod4() { Debug.Log("base method"); }
-    // private LuaFunction lf5; [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute5() { lf5.Call(); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod5() { Debug.Log("base method"); }
-    // private LuaFunction lf6; [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute6() { lf6.Call(); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod6() { Debug.Log("base method"); }
-    // private LuaFunction lf7; [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute7() { lf7.Call(); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod7() { Debug.Log("base method"); }
-    
     
 }

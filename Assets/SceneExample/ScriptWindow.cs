@@ -1,10 +1,12 @@
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ScriptWindow:MonoBehaviour
 {
     public Text console;
-    public InputField text;
+    public Text_Editor text;
     public Button compile;
     
     
@@ -12,23 +14,7 @@ public class ScriptWindow:MonoBehaviour
     {
         Application.logMessageReceived+= ApplicationOnlogMessageReceived;
         compile.onClick.AddListener(Patch);
-        
-        text.text = @"
-using UnityEngine;
-public class PlayerTestMod:PlayerTest
-    {
-        public override void Update()
-        {
-            if (!cc.isGrounded)
-                yVel -= 10 * Time.deltaTime;
-
-            if (Input.GetAxis(""Fire1"")>0)
-                yVel = 3;
-            base.Update();
-        }
-    }    
-";
-        
+        text.text = File.ReadAllText(Application.streamingAssetsPath + "/PlayerTestMod.cs").Replace("\r", "");
     }
     private void ApplicationOnlogMessageReceived(string condition, string stacktrace, LogType type)
     {
