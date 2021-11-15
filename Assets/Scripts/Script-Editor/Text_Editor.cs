@@ -393,8 +393,8 @@ Classes/methods does not updated in realtime, so if your write new new method - 
     Dictionary<Text, GameObject> breakpoints = new Dictionary<Text, GameObject>();
 
     //TODO: This is windows only solution, and that's bad :(
-    [System.Runtime.InteropServices.DllImport("USER32.dll")]
-    public static extern short GetKeyState(int nVirtKey);
+    // [System.Runtime.InteropServices.DllImport("USER32.dll")]
+    // public static extern short GetKeyState(int nVirtKey);
 
     // Start is called before the first frame update
     void Awake()
@@ -564,7 +564,7 @@ Classes/methods does not updated in realtime, so if your write new new method - 
         foreach (var k in keys) builtin_types.Add(k.Trim() + "[]", builtin_types[k].Trim() + "[]");
         if (Intellisense_Settings.max_suggestion_count <= 0) Intellisense_Settings.max_suggestion_count = 20;
 
-        text = note.Replace("\r", "");
+        // text = note.Replace("\r", "");
         current_row = 0;
         Cursor_Update_Position();
 
@@ -793,7 +793,7 @@ Classes/methods does not updated in realtime, so if your write new new method - 
         #region "Handle letter/number/symbols keys"
 
         string type = "";
-        bool isCapsLockOn = (GetKeyState(0x14) & 1) > 0;
+        bool isCapsLockOn = false;
         bool pair_autoclosed = false;
         if (!ctrl_Pressed && !alt_Pressed)
         {
@@ -801,17 +801,19 @@ Classes/methods does not updated in realtime, so if your write new new method - 
             {
                 if (Input.GetKeyDown(ki.Key) || repeat == ki.Key)
                 {
-                    type = ki.Value.ToString();
-                    if (shift_pressed)
-                        if (keyUpper.ContainsKey(ki.Key)) type = keyUpper[ki.Key].ToString();
-                        else type = type.ToUpper();
+                    
+                    // type = ki.Value.ToString();
+                    // if (shift_pressed)
+                    //     if (keyUpper.ContainsKey(ki.Key)) type = keyUpper[ki.Key].ToString();
+                    //     else type = type.ToUpper();
+                    type = Input.inputString;
 
                     //Caps lock should only uppercase letters, and not affect symbols
-                    if (isCapsLockOn)
-                        if (!shift_pressed) type = type.ToUpper();
-                        else type = type.ToLower();
+                    // if (isCapsLockOn)
+                        // if (!shift_pressed) type = type.ToUpper();
+                        // else type = type.ToLower();
 
-                    Character_Repeat_Handler("SET", ki.Key);
+                    // Character_Repeat_Handler("SET", ki.Key);
 
                     //Autoclose pairs
                     if (Auto_Close_Pairs_Dict.ContainsValue(type) && Selection_Get_Text() == "")
@@ -2337,7 +2339,7 @@ Classes/methods does not updated in realtime, so if your write new new method - 
         string timelog_txt_file = "D:\\Unity 2018.1.0f2\\Projects\\Script-o-bot\\assemblies timelog.txt";
 
         //string [] exclude_assemblies_arr = new string[]{"UNITYEDITOR", "MCS", "UNITYENGINE.UI", "UNITYENGINE.COREMODULE", "NUNIT", "ASSEMBLY-CSHARP-", "UNITY.TEXTMESHPRO", "UNITY.CECIL", "UNITY.LEGACY"};
-        string[] exclude_assemblies_arr = new string[] {"SYSTEM, ", "UNITYEDITOR", "MCS", "UNITYENGINE.UI", "NUNIT", "ASSEMBLY-CSHARP-", "UNITY.TEXTMESHPRO", "UNITY.CECIL", "UNITY.LEGACY"};
+        string[] exclude_assemblies_arr = new string[] {"SYSTEM, ", "UNITYEDITOR", "MCS", "UNITYENGINE.UI", "NUNIT", "ASSEMBLY-CSHARP-", "UNITY.TEXTMESHPRO", "UNITY.CECIL", "UNITY.LEGACY","Microsoft"};
         //exclude_assemblies_arr = new string[]{};
         string[] exclude_namespaces_arr = exclude_namespaces.Split(new char[] {'\n'}, StringSplitOptions.RemoveEmptyEntries);
         exclude_namespaces_arr = exclude_namespaces_arr.Select((s) => s.ToUpper()).ToArray();
@@ -2359,10 +2361,12 @@ Classes/methods does not updated in realtime, so if your write new new method - 
             if (WRITE_TIMELOG) sw_T = System.IO.File.CreateText(timelog_txt_file);
 
             List<string> namespaces = new List<string>();
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => exclude_assemblies_arr.Where(a => asm.FullName.ToUpper().StartsWith(a)).Count() == 0);
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly asm in assemblies)
             {
-                //Debug.Log(asm.FullName);
+                if (exclude_assemblies_arr.Any(a => asm.FullName.StartsWith(a, StringComparison.InvariantCulture))) continue;
+                    
+                Debug.Log(asm.FullName);
                 if (WRITE_ASSEMBLIES_LIST_TO_FILE) sw.WriteLine("Assembly full name: " + asm.FullName);
                 if (WRITE_ASSEMBLIES_LIST_TO_FILE) sw.WriteLine("----------------------------------------------------------------------------------");
 
