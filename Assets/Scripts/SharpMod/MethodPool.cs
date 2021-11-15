@@ -25,13 +25,13 @@ public class MethodPool
     public List<MethodHook> hooks = new List<MethodHook>();
     public MethodPool()
     {
-        methods.Push((1, LuaExecute1, BaseMethod1));
+        methods.Push((1, Execute1, BaseMethod1));
         // methods.Push((2, LuaExecute2, BaseMethod2));
 
     }
     
     
-    [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute1() { SharpMod.Base = (Action)BaseMethod1; mp.lf[1].Invoke(HybInstance.Object(this)); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod1() { Debug.Log("base method"); }
+    [MethodImpl(MethodImplOptions.NoOptimization)] public void Execute1() { SharpMod.Base = (Action)BaseMethod1; mp.lf[1].Invoke(HybInstance.Object(this)); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod1() { Debug.Log("base method"); }
     
     // [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute2() { LuaMod.lua["this"] = this; mp.lf[2].Call(); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod2() { Debug.Log("base method"); }
     // private LuaFunction lf3; [MethodImpl(MethodImplOptions.NoOptimization)] public void LuaExecute3() { lf3.Call(); } [MethodImpl(MethodImplOptions.NoOptimization)] public void BaseMethod3() { Debug.Log("base method"); }
