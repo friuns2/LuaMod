@@ -22,9 +22,9 @@ public class PlayerTestMod:PlayerTest
             if (!cc.isGrounded)
                 yVel -= 10 * Time.deltaTime;
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetAxis(""Fire1"")>0)
                 yVel = 3;
-            SharpMod.BaseInvoke();
+            base.Update();
         }
     }    
 ";

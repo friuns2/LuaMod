@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NLua;
 using Slowsharp;
 
@@ -16,6 +17,8 @@ public static class SharpMod
     {
         foreach(var a in MethodPool.mp.hooks)
             a.Uninstall();
+        s = Regex.Replace(s, @"base\.\w*\(\);", "SharpMod.BaseInvoke();");
+        
         MethodPool.mp = new MethodPool();
         
         var runner = CScript.CreateRunner(s);

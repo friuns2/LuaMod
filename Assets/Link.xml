@@ -1,0 +1,8 @@
+<linker>
+    <assembly fullname="UnityEngine.PhysicsModule">
+        <namespace fullname="UnityEngine" preserve="all"/>
+    </assembly>
+    <assembly fullname="UnityEngine.InputLegacyModule">
+        <namespace fullname="UnityEngine" preserve="all"/>
+    </assembly>
+</linker>
